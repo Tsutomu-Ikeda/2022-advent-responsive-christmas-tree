@@ -11,28 +11,30 @@ const App: React.FC = () => {
     ...andAHappyNewYear,
   ];
 
-  const [items, setItems] = useState<{
-    text: string;
-    columnNumber: number;
-    rowNumber: number;
-    isDisplay: boolean;
-    key: number;
-  }[]>([]);
+  const [items, setItems] = useState<
+    {
+      text: string;
+      columnNumber: number;
+      rowNumber: number;
+      isDisplay: boolean;
+      key: number;
+    }[]
+  >([]);
 
+  const gridItemSize = 60, gridGap = 20, trunkThickness = 3;
   const [numColumns, setNumColumns] = useState(1);
-  const [maxNumRows, setMaxNumRows] = useState(1);
-
+  const [numRows, setNumRows] = useState(1);
   const onResize = () => {
     const newNumColumns = Math.floor(
-        Math.max(((wrapperRef.current?.clientWidth ?? 0) - 20) / (60 + 20), 5)
+        Math.max(((wrapperRef.current?.clientWidth ?? 0) - gridGap) / (gridItemSize + gridGap), 5)
       ),
-      newMaxNumRows = Math.floor(
-        Math.max(((wrapperRef.current?.clientHeight ?? 0) - 20) / (60 + 20), 5)
+      newNumRows = Math.floor(
+        Math.max(((wrapperRef.current?.clientHeight ?? 0) - gridGap) / (gridItemSize + gridGap), 5)
       );
     const newItems = [];
     let displayCount = 0;
 
-    for (let index = 0; index < newNumColumns * newMaxNumRows; index++) {
+    for (let index = 0; index < newNumColumns * newNumRows; index++) {
       const columnNumber = (index % newNumColumns) + 1,
         rowNumber = Math.floor(index / newNumColumns) + 1;
       const horizontalCenterNumber = Math.floor((newNumColumns - 1) / 2) + 1;
@@ -41,7 +43,7 @@ const App: React.FC = () => {
         if (rowNumber >= newNumColumns / 2 + 1)
           return (
             Math.abs(columnNumber - horizontalCenterNumber) <=
-            Math.min(Math.ceil(newNumColumns / 2 - 3), 1)
+            Math.min(Math.ceil(newNumColumns / 2 - trunkThickness), 1)
           );
 
         return Math.abs(columnNumber - horizontalCenterNumber) < rowNumber;
@@ -59,7 +61,7 @@ const App: React.FC = () => {
     }
 
     setNumColumns(newNumColumns);
-    setMaxNumRows(newMaxNumRows);
+    setNumRows(newNumRows);
     setItems(newItems);
   };
   useEffect(() => {
@@ -71,41 +73,48 @@ const App: React.FC = () => {
   return (
     <div
       style={{
-        width: "calc(100vw - 20px * 2 - 20px * 2)",
-        height: "calc(100vh - 20px * 2 - 20px * 2)",
-        backgroundColor: "#fff",
-        justifyContent: "start",
-        verticalAlign: "top",
-        margin: "20px",
         padding: "20px",
-        display: "grid",
-        gridTemplateColumns: `repeat(${numColumns}, 60px)`,
-        gridTemplateRows: `repeat(${maxNumRows}, 60px)`,
-        gridGap: "20px 20px",
+        height: "100vh",
+        boxSizing: "border-box",
       }}
-      ref={wrapperRef}
     >
-      {items.map((item) => {
-        return (
-          <div
-            style={{
-              width: "60px",
-              height: "60px",
-              backgroundColor: "#1b8a2c",
-              color: "#1b8a2c",
-              display: "flex", // テキストの中央揃え用のflex
-              alignItems: "center",
-              justifyContent: "center",
-              gridColumn: item.columnNumber,
-              gridRow: item.rowNumber,
-              opacity: item.isDisplay ? 1 : 0,
-            }}
-            key={item.key}
-          >
-            {item.text}
-          </div>
-        );
-      })}
+      <div
+        style={{
+          height: "100%",
+          width: "100%",
+          boxSizing: "border-box",
+          backgroundColor: "#fff",
+          padding: "20px",
+          display: "grid",
+          gridTemplate: `repeat(${numRows}, ${gridItemSize}px) / repeat(${numColumns}, ${gridItemSize}px)`,
+          gridGap,
+          alignContent: "start",
+        }}
+        ref={wrapperRef}
+      >
+        {items.map((item) => {
+          if (item.isDisplay)
+            return (
+              <div
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  backgroundColor: "#1b8a2c",
+                  color: "#1b8a2c",
+                  display: "flex", // テキストの中央揃え用のflex
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gridColumn: item.columnNumber,
+                  gridRow: item.rowNumber,
+                }}
+                key={item.key}
+              >
+                {item.text}
+              </div>
+            );
+          else return undefined;
+        })}
+      </div>
     </div>
   );
 };
